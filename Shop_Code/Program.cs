@@ -6,9 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Shop_Code
-{
-   
-
+{  
     internal class Program
     {
         static void Main(string[] args)
@@ -29,22 +27,21 @@ namespace Shop_Code
 
     class Shop
     {
-        const string MessageErrorInput = "Error input";
+        private const string MessageErrorInput = "Error input";//Создание Класса
 
-        const string CommandShowSellerItems = "1";
-        const string CommandShowBuyerItems = "2";
-        const string CommandBuyItem = "3";
-        const string CommandExit = "0";
+        private const string CommandShowSellerItems = "1";
+        private const string CommandShowBuyerItems = "2";
+        private const string CommandBuyItem = "3";
+        private const string CommandExit = "0";
 
-        private bool isWrok;
-
+        private bool isWork;
         
         public void Trade(Seller seller,Buyer buyer)
         {
             Console.WriteLine("Welcome to Shop");
-            isWrok = true;
+            isWork = true;
 
-            while (isWrok)
+            while (isWork)
             {               
                 Console.WriteLine("Input Command:");
                 Console.WriteLine($"{CommandShowSellerItems} - show items seller");
@@ -70,7 +67,7 @@ namespace Shop_Code
                         break;
 
                     case CommandExit:
-                        isWrok = false;
+                        isWork = false;
                         break;
 
                     default:
@@ -86,31 +83,25 @@ namespace Shop_Code
         private void RunCommandBuyItem(Seller seller,Buyer buyer)
         {
             Console.WriteLine("input number item: ");
-            string input = Console.ReadLine();
-
-            if (!CorrectCharacters(input))
-            {
-                Console.WriteLine(MessageErrorInput);
-                return;
-            }
-
-            int number = int.Parse(input);
+            int number = ReadNumber();
 
             if (seller.SellItem(out Item item,buyer.GetAmountCoins, number)) 
                 buyer.BuyItem(item);
         }
 
-        private bool CorrectCharacters(string number)
+        private int ReadNumber()
         {
-            int i = 0;
-            char[] all = { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' };
+            int result;
+            string numberForConvert = "";
 
-            foreach (var item in number.Union(all))
-                i++;
+            while (int.TryParse(numberForConvert, out result) == false)
+            {
+                Console.Write("Input number:");
+                numberForConvert = Console.ReadLine();
+            }
 
-            return i == all.Length;
+            return result;
         }
-
     }
 
     class Buyer : Player
@@ -119,8 +110,8 @@ namespace Shop_Code
 
         public void BuyItem(Item item)
         {
-            _items.Add(item);
-            _amountCoins -= item.GetPirce;
+            Items.Add(item);
+            AmountCoins -= item.GetPirce;
             Console.WriteLine("You bought: "  + item.GetName);
         }
     }
@@ -141,8 +132,8 @@ namespace Shop_Code
                     return false;
                 }
 
-                _items.Remove(needItem);
-                _amountCoins += needItem.GetPirce;
+                Items.Remove(needItem);
+                AmountCoins += needItem.GetPirce;
                 item = needItem;
                 return true;
             }
@@ -154,45 +145,45 @@ namespace Shop_Code
         {
             needItem = null;
 
-            if (_items.Count < numberItem && _items[numberItem - 1] != null)
+            if (Items.Count < numberItem && Items[numberItem - 1] != null)
             {
                 Console.WriteLine("Item not found");
                 return false;
             }            
 
-            needItem = _items[numberItem - 1];
+            needItem = Items[numberItem - 1];
             return true;
 
         }
     }
 
-    class Player
+    abstract class Player
     {
-        protected string _name;
-        protected int _amountCoins;
-        protected List<Item> _items;
+        protected string Name;
+        protected int AmountCoins;
+        protected List<Item> Items;
 
-        public int GetAmountCoins => _amountCoins;
+        public int GetAmountCoins => AmountCoins;
 
         public Player(string name, int amountCoins, List<Item> items)
         {
-            _name = name;
-            _amountCoins = amountCoins;
-            _items = items;
+            Name = name;
+            AmountCoins = amountCoins;
+            Items = items;
         }
 
         public void ShowPlayer()
         {
-            Console.WriteLine($"Name: {_name} || AmountCouns: {_amountCoins}");
+            Console.WriteLine($"Name: {Name} || AmountCouns: {AmountCoins}");
         }
 
         public void ShowItems()
         {
-            if (_items.Count == 0)
+            if (Items.Count == 0)
                 Console.WriteLine("No items");
             else
-                for (int i = 0; i < _items.Count; i++)
-                    Console.WriteLine($"{i + 1}." + _items[i].GetInfoItem());
+                for (int i = 0; i < Items.Count; i++)
+                    Console.WriteLine($"{i + 1}." + Items[i].GetInfoItem());
         }
     }
 
@@ -218,7 +209,4 @@ namespace Shop_Code
             return $"{_name}|Description - {_description}|Price - {_price}";
         }
     }
-
-
-
 }
