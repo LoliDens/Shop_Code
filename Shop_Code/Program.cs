@@ -24,10 +24,9 @@ namespace Shop_Code
         }
     }
 
-
     class Shop
     {
-        private const string MessageErrorInput = "Error input";//Создание Класса
+        private const string MessageErrorInput = "Error input";
 
         private const string CommandShowSellerItems = "1";
         private const string CommandShowBuyerItems = "2";
@@ -53,12 +52,12 @@ namespace Shop_Code
                 switch (input)
                 {
                     case CommandShowSellerItems:
-                        seller.ShowPlayer();
+                        seller.ShowInfo();
                         seller.ShowItems();
                         break;
 
                     case CommandShowBuyerItems:
-                        buyer.ShowPlayer();
+                        buyer.ShowInfo();
                         buyer.ShowItems();
                         break;
 
@@ -159,11 +158,11 @@ namespace Shop_Code
 
     abstract class Player
     {
+        public int GetAmountCoins => AmountCoins;
+
         protected string Name;
         protected int AmountCoins;
         protected List<Item> Items;
-
-        public int GetAmountCoins => AmountCoins;
 
         public Player(string name, int amountCoins, List<Item> items)
         {
@@ -172,7 +171,7 @@ namespace Shop_Code
             Items = items;
         }
 
-        public void ShowPlayer()
+        public void ShowInfo()
         {
             Console.WriteLine($"Name: {Name} || AmountCouns: {AmountCoins}");
         }
@@ -183,19 +182,19 @@ namespace Shop_Code
                 Console.WriteLine("No items");
             else
                 for (int i = 0; i < Items.Count; i++)
-                    Console.WriteLine($"{i + 1}." + Items[i].GetInfoItem());
+                    Console.WriteLine($"{i + 1}." + Items[i].GetInfo());
         }
     }
 
 
     class Item
     {
+        public int GetPirce => _price;
+        public string GetName => _name;
+
         private string _name;
         private string _description;
         private int _price;
-
-        public int GetPirce => _price;
-        public string GetName => _name;
 
         public Item(string name, string description, int price)
         {
@@ -204,7 +203,7 @@ namespace Shop_Code
             _price = price;
         }
 
-        public string GetInfoItem()
+        public string GetInfo()
         {
             return $"{_name}|Description - {_description}|Price - {_price}";
         }
