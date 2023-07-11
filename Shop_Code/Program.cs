@@ -88,7 +88,7 @@ namespace Shop_Code
             Console.WriteLine("input number item: ");
             int number = ReadNumber(0,seller.GetAmountItems);
 
-            if (seller.TryGetItemPrice(out int priceItem, number) && buyer.CanBuy(priceItem))
+            if (seller.TryGetItemPrice(number,out int priceItem) && buyer.CanBuy(priceItem))
             {
                 buyer.BuyItem(seller.SellItem());
             }
