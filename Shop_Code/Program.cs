@@ -52,13 +52,11 @@ namespace Shop_Code
                 switch (input)
                 {
                     case CommandShowSellerItems:
-                        seller.ShowInfo();
-                        seller.ShowItems();
+                        ShowPlayer(seller);
                         break;
 
                     case CommandShowBuyerItems:
-                        buyer.ShowInfo();
-                        buyer.ShowItems();
+                        ShowPlayer(buyer);
                         break;
 
                     case CommandBuyItem:
@@ -79,24 +77,42 @@ namespace Shop_Code
             }
         }
 
+        private void ShowPlayer(Player player)
+        {
+            Console.WriteLine(player);
+            player.ShowItems();
+        }
+
         private void RunCommandBuyItem(Seller seller,Buyer buyer)
         {
             Console.WriteLine("input number item: ");
-            int number = ReadNumber();
+            int number = ReadNumber(0,seller.GetAmountItems);
 
-            if (seller.SellItem(out Item item,buyer.GetAmountCoins, number)) 
-                buyer.BuyItem(item);
+            if (seller.TryGetItemPrice(out int priceItem, number) && buyer.CanBuy(priceItem))
+            {
+                buyer.BuyItem(seller.SellItem());
+            }
         }
 
-        private int ReadNumber()
+        private int ReadNumber(int min = int.MinValue, int max = int.MaxValue)
         {
-            int result;
-            string numberForConvert = "";
+            int result = 0;
+            bool isWrok = false;
 
-            while (int.TryParse(numberForConvert, out result) == false)
+            while (!isWrok)
             {
-                Console.Write("Input number:");
-                numberForConvert = Console.ReadLine();
+                string number = Console.ReadLine();
+
+                while (int.TryParse(number, out result) == false)
+                {
+                    Console.WriteLine("Input error.Re-enter the number");
+                    number = Console.ReadLine();
+                }
+
+                if (result <= max && result >= min)
+                    isWrok = true;
+                else
+                    Console.WriteLine("Input error.Number is out for range");
             }
 
             return result;
@@ -107,40 +123,58 @@ namespace Shop_Code
     {
         public Buyer(string name, int amountCoins, List<Item> items) : base(name, amountCoins, items) { }
 
+        public bool CanBuy(int itemPrice)
+        {
+            return AmountCoins >= itemPrice;
+        }
+
         public void BuyItem(Item item)
         {
+            if (item == null)
+            {
+                Console.WriteLine("Erorr.Item is empty");
+                return;
+            }                
+
             Items.Add(item);
-            AmountCoins -= item.GetPirce;
-            Console.WriteLine("You bought: "  + item.GetName);
+            AmountCoins -= item._price;
+            Console.WriteLine("You bought: "  + item._name);
         }
     }
 
     class Seller : Player
     {
+        private Item _itemForSell;
+
         public Seller(string name, int amountCoins, List<Item> items) : base(name, amountCoins, items) { }
 
-        public bool SellItem(out Item item,int amountCoinsBuyer,int numberItem)
-        {
-            item = null;
-
-            if (FindItem(out Item needItem, numberItem)) 
+        public bool TryGetItemPrice(int numberItem, out int priceItem)
+        {           
+            if (TryGetItem(out Item item,numberItem))
             {
-                if (amountCoinsBuyer < needItem.GetPirce)
-                {
-                    Console.WriteLine("Not enough coins");
-                    return false;
-                }
-
-                Items.Remove(needItem);
-                AmountCoins += needItem.GetPirce;
-                item = needItem;
+                _itemForSell = item;
+                priceItem = _itemForSell._price;
                 return true;
             }
 
+            priceItem = 0;
             return false;
         }
 
-        private bool FindItem(out Item needItem, int numberItem)
+        public Item SellItem()
+        {
+            if (_itemForSell == null)
+            {
+                Console.WriteLine("Error.Item is empty");
+                return null;
+            }
+            
+            Items.Remove(_itemForSell);
+            AmountCoins += _itemForSell._price;
+            return _itemForSell;
+        }
+
+        private bool TryGetItem(out Item needItem, int numberItem)
         {
             needItem = null;
 
@@ -152,14 +186,11 @@ namespace Shop_Code
 
             needItem = Items[numberItem - 1];
             return true;
-
         }
     }
 
     abstract class Player
     {
-        public int GetAmountCoins => AmountCoins;
-
         protected string Name;
         protected int AmountCoins;
         protected List<Item> Items;
@@ -171,31 +202,31 @@ namespace Shop_Code
             Items = items;
         }
 
-        public void ShowInfo()
+        public int GetAmountItems => Items.Count;
+
+        public override string ToString()
         {
-            Console.WriteLine($"Name: {Name} || AmountCouns: {AmountCoins}");
+            return ($"Name: {Name} || AmountCouns: {AmountCoins}");
         }
 
         public void ShowItems()
         {
-            if (Items.Count == 0)
+            if (Items.Count == 0) 
+            {
                 Console.WriteLine("No items");
-            else
-                for (int i = 0; i < Items.Count; i++)
-                    Console.WriteLine($"{i + 1}." + Items[i].GetInfo());
+                return;
+            }
+            
+            for (int i = 0; i < Items.Count; i++)
+                Console.WriteLine($"{i + 1}." + Items[i]);
         }
     }
 
-
     class Item
     {
-        public int GetPirce => _price;
-        public string GetName => _name;
-
-        private string _name;
-        private string _description;
-        private int _price;
-
+        public string _name { get; }
+        public string _description { get; }
+        public int _price { get; }
         public Item(string name, string description, int price)
         {
             _name = name;
@@ -203,7 +234,7 @@ namespace Shop_Code
             _price = price;
         }
 
-        public string GetInfo()
+        public override string ToString()
         {
             return $"{_name}|Description - {_description}|Price - {_price}";
         }
